@@ -93,5 +93,6 @@ C:\Users\itsme\OneDrive\Desktop\sem5th_projects\dotnetproject1\PhotoAlbumApp\obj
 C:\Users\itsme\OneDrive\Desktop\sem5th_projects\dotnetproject1\PhotoAlbumApp\obj\Debug\net10.0\PhotoAlbumApp.pdb
 C:\Users\itsme\OneDrive\Desktop\sem5th_projects\dotnetproject1\PhotoAlbumApp\obj\Debug\net10.0\PhotoAlbumApp.genruntimeconfig.cache
 C:\Users\itsme\OneDrive\Desktop\sem5th_projects\dotnetproject1\PhotoAlbumApp\obj\Debug\net10.0\ref\PhotoAlbumApp.dll
-C:\Users\itsme\OneDrive\Desktop\sem5th_projects\dotnetproject1\PhotoAlbumApp\obj\Debug\net10.0\compressed\qbo3wlr0od-{0}-71sz78p5rd-71sz78p5rd.gz
-C:\Users\itsme\OneDrive\Desktop\sem5th_projects\dotnetproject1\PhotoAlbumApp\obj\Debug\net10.0\compressed\rqz751szjm-{0}-lwnuedea5r-lwnuedea5r.gz
+C:\Users\itsme\OneDrive\Desktop\sem5th_projects\dotnetproject1\PhotoAlbumApp\obj\Debug\net10.0\PhotoAlbumApp.sourcelink.json
+C:\Users\itsme\OneDrive\Desktop\sem5th_projects\dotnetproject1\PhotoAlbumApp\obj\Debug\net10.0\compressed\rqz751szjm-{0}-8iwsx5nnz7-8iwsx5nnz7.gz
+C:\Users\itsme\OneDrive\Desktop\sem5th_projects\dotnetproject1\PhotoAlbumApp\obj\Debug\net10.0\compressed\qbo3wlr0od-{0}-yr3hh00ha7-yr3hh00ha7.gz

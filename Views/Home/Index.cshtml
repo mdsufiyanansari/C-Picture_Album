@@ -6,74 +6,129 @@
     }
 </style>
 
-<h1>📸 My Photo Album</h1>
-
-<form asp-action="Upload" method="post" enctype="multipart/form-data">
-    <input type="file" id="fileInput" name="file" required onchange="previewImage()" />
-    <button type="submit">Upload</button>
-</form>
-
-<!-- Preview -->
-<div id="previewBox"></div>
-
-<hr/>
-
-<!-- Image Slider (Hidden by default) -->
-<div class="slider-modal" id="sliderModal">
-    <button class="slider-close" onclick="closeSlider()">✕</button>
-    <div class="slider-container">
-        <div class="slider">
-            <button class="slider-btn prev" onclick="prevSlide()">❮</button>
-            <div class="slider-wrapper">
-                <div class="slider-track" id="sliderTrack">
-                    @foreach (var img in Model)
-                    {
-                        <img src="/images/@img" alt="@img" class="slide" data-img="@img" />
-                    }
-                </div>
-            </div>
-            <button class="slider-btn next" onclick="nextSlide()">❯</button>
+<div class="album-container">
+    <!-- Hero Section with Upload -->
+    <div class="hero-section">
+        <div class="hero-content">
+            <h1 class="album-title">📸 My Photo Album</h1>
+            <p class="album-subtitle">Organize, caption, and cherish your favorite moments</p>
         </div>
-        <div class="slider-controls">
-            <div class="slider-info">
-                <p>Image <span id="currentSlide">1</span> of <span id="totalSlides">@Model.Count</span></p>
-                <small style="display: block; margin-top: 5px; opacity: 0.8;">💡 Drag to pan when zoomed | Scroll to zoom</small>
+    </div>
+
+    <!-- Upload Form Section -->
+    <div class="upload-section">
+        <form asp-action="Upload" method="post" enctype="multipart/form-data" class="upload-form">
+            <div class="form-group">
+                <label for="fileInput" class="file-label">
+                    <div class="file-input-wrapper">
+                        <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="17 8 12 3 7 8"></polyline>
+                            <line x1="12" y1="3" x2="12" y2="15"></line>
+                        </svg>
+                        <span class="upload-text">Click to upload or drag and drop</span>
+                        <span class="upload-hint">PNG, JPG, GIF up to 10MB</span>
+                    </div>
+                </label>
+                <input type="file" id="fileInput" name="file" required onchange="previewImage()" accept="image/*" />
             </div>
-            <div class="zoom-controls">
-                <button class="zoom-btn" onclick="zoomIn()" title="Zoom In">🔍+</button>
-                <span id="zoomLevel">100%</span>
-                <button class="zoom-btn" onclick="zoomOut()" title="Zoom Out">🔍−</button>
-                <button class="zoom-btn" onclick="resetZoom()" title="Reset Zoom">↺</button>
+
+            <!-- Preview Section -->
+            <div id="previewBox" class="preview-section"></div>
+
+            <button type="submit" class="submit-btn">
+                <span class="btn-icon">✓</span> Upload Image
+            </button>
+        </form>
+    </div>
+
+    <!-- Image Slider (Hidden by default) -->
+    <div class="slider-modal" id="sliderModal">
+        <button class="slider-close" onclick="closeSlider()" title="Close (Esc)">✕</button>
+        <div class="slider-container">
+            <div class="slider">
+                <button class="slider-btn prev" onclick="prevSlide()" title="Previous (←)">❮</button>
+                <div class="slider-wrapper">
+                    <div class="slider-track" id="sliderTrack">
+                        @foreach (var img in Model)
+                        {
+                            <div class="slide" data-img="@img">
+                                <img src="/images/@img" alt="@img" />
+                            </div>
+                        }
+                    </div>
+                </div>
+                <button class="slider-btn next" onclick="nextSlide()" title="Next (→)">❯</button>
+            </div>
+            <div class="slider-controls">
+                <div class="slider-info">
+                    <p>🖼️ Image <span id="currentSlide">1</span> of <span id="totalSlides">@Model.Count</span></p>
+                    <small>💡 Drag to move | Scroll to zoom | Arrow keys to navigate | (+/-) to zoom | 0 to reset | ESC to close</small>
+                </div>
+                <div class="zoom-controls">
+                    <button class="zoom-btn" onclick="zoomOut()" title="Zoom Out (-)">🔍−</button>
+                    <span id="zoomLevel">100%</span>
+                    <button class="zoom-btn" onclick="zoomIn()" title="Zoom In (+)">🔍+</button>
+                    <button class="zoom-btn" onclick="resetZoom()" title="Reset Zoom (0)">↺</button>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-
-
-<div class="gallery">
-    @foreach (var img in Model)
-    {
-        <div class="card">
-            <img src="/images/@img" onclick="openSlider('@img')" class="card-img" />
-
-            <input type="text" placeholder="Add caption..." 
-                   oninput="saveCaption('@img', this.value)" />
-
-            <button onclick="likeImage('@img')" class="like-btn">❤️</button>
-
-            <p id="likes-@img"></p>
-
-            <div class="actions">
-                <a href="/Home/Delete?name=@img">❌ Delete</a>
+    <!-- Gallery Section -->
+    <div class="gallery-section">
+        @if (Model.Count == 0)
+        {
+            <div class="empty-state">
+                <div class="empty-icon">🖼️</div>
+                <h2>No photos yet</h2>
+                <p>Upload your first photo to get started!</p>
             </div>
-        </div>
-    }
+        }
+        else
+        {
+            <h2 class="gallery-title">Your Photos</h2>
+            <div class="gallery">
+                @foreach (var img in Model)
+                {
+                    <div class="card">
+                        <div class="card-image-container">
+                            <img src="/images/@img" onclick="openSlider('@img')" class="card-img" alt="Photo" />
+                            <div class="card-overlay">
+                                <span class="view-label">Click to expand</span>
+                            </div>
+                        </div>
+
+                        <div class="card-content">
+                            <div class="card-caption-section">
+                                <input type="text" placeholder="Add a caption..." class="card-caption"
+                                       oninput="saveCaption('@img', this.value)" />
+                            </div>
+
+                            <div class="card-info">
+                                <button onclick="likeImage('@img')" class="like-btn" title="Like this photo">
+                                    <span class="heart-icon">❤️</span>
+                                    <span id="likes-count-@img" class="likes-count">0</span>
+                                </button>
+                                <p id="likes-@img" class="likes-text" style="display:none;"></p>
+                            </div>
+
+                            <div class="card-actions">
+                                <a href="/Home/Delete?name=@img" class="delete-btn" title="Delete this photo">
+                                    <span class="icon">🗑️</span> Delete
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
 </div>
 
 <!-- Modal -->
 <div id="modal" class="modal" onclick="closeModal()">
-    <img id="modalImg">
+    <img id="modalImg" />
 </div>
 
 <link rel="stylesheet" href="~/css/site.css" />

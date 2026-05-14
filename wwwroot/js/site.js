@@ -42,8 +42,17 @@ function loadLikes() {
     let likes = JSON.parse(localStorage.getItem("likes")) || {};
 
     for (let key in likes) {
+        // Update the likes count display
+        let countEl = document.getElementById("likes-count-" + key);
+        if (countEl) {
+            countEl.innerText = likes[key];
+        }
+        
+        // Keep backward compatibility with old structure if needed
         let el = document.getElementById("likes-" + key);
-        if (el) el.innerText = "❤️ " + likes[key];
+        if (el) {
+            el.innerText = "❤️ " + likes[key];
+        }
     }
 }
 
@@ -58,7 +67,8 @@ function saveCaption(name, text) {
 function loadCaptions() {
     let captions = JSON.parse(localStorage.getItem("captions")) || {};
 
-    document.querySelectorAll("input").forEach(input => {
+    // Use the specific class selector for captions
+    document.querySelectorAll(".card-caption").forEach(input => {
         let name = input.getAttribute("oninput")?.match(/'(.*?)'/)?.[1];
         if (name && captions[name]) {
             input.value = captions[name];
@@ -68,10 +78,21 @@ function loadCaptions() {
 
 // Init
 window.onload = function() {
+    initializeLikesDisplay();
     loadLikes();
     loadCaptions();
     initSlider();
 };
+
+// Initialize likes display for all cards
+function initializeLikesDisplay() {
+    let likes = JSON.parse(localStorage.getItem("likes")) || {};
+    
+    document.querySelectorAll(".likes-count").forEach(el => {
+        let imageName = el.id.replace("likes-count-", "");
+        el.innerText = likes[imageName] || 0;
+    });
+}
 
 // Zoom and Pan variables
 let currentSlideIndex = 0;
@@ -105,6 +126,9 @@ function setupPanListeners() {
     wrapper.addEventListener("mouseup", handleDragEnd);
     wrapper.addEventListener("mouseleave", handleDragEnd);
     wrapper.addEventListener("wheel", handleWheel, { passive: false });
+    wrapper.addEventListener("touchstart", handleTouchStart, false);
+    wrapper.addEventListener("touchmove", handleTouchMove, false);
+    wrapper.addEventListener("touchend", handleTouchEnd, false);
 }
 
 function handleDragStart(e) {
@@ -144,6 +168,37 @@ function handleDragEnd() {
     }
 }
 
+function handleTouchStart(e) {
+    if (currentZoom <= 1) return;
+    
+    isDragging = true;
+    dragStartX = e.touches[0].clientX;
+    dragStartY = e.touches[0].clientY;
+    dragStartPanX = panX;
+    dragStartPanY = panY;
+}
+
+function handleTouchMove(e) {
+    if (!isDragging || currentZoom <= 1) return;
+    
+    const deltaX = e.touches[0].clientX - dragStartX;
+    const deltaY = e.touches[0].clientY - dragStartY;
+    
+    const wrapper = document.querySelector(".slider-wrapper");
+    const wrapperRect = wrapper.getBoundingClientRect();
+    const maxPan = (currentZoom - 1) * (wrapperRect.width / 2);
+    const maxPanY = (currentZoom - 1) * (wrapperRect.height / 2);
+    
+    panX = Math.max(-maxPan, Math.min(maxPan, dragStartPanX + deltaX));
+    panY = Math.max(-maxPanY, Math.min(maxPanY, dragStartPanY + deltaY));
+    
+    applyZoom();
+}
+
+function handleTouchEnd() {
+    isDragging = false;
+}
+
 function handleWheel(e) {
     if (currentZoom <= 1) return;
     
@@ -170,6 +225,7 @@ function openSlider(imageName) {
     resetZoom();
     updateSliderPosition();
     document.getElementById("sliderModal").classList.add("active");
+    document.body.style.overflow = "hidden";
 }
 
 function closeSlider() {
@@ -177,6 +233,7 @@ function closeSlider() {
     resetZoom();
     panX = 0;
     panY = 0;
+    document.body.style.overflow = "auto";
 }
 
 function updateSliderPosition() {
@@ -197,6 +254,7 @@ function updateSliderPosition() {
     track.style.transform = `translateX(${offset}%)`;
     
     document.getElementById("currentSlide").textContent = currentSlideIndex + 1;
+    resetZoom();
 }
 
 function nextSlide() {
@@ -212,14 +270,18 @@ function prevSlide() {
 // Zoom functions
 function zoomIn() {
     if (currentZoom < MAX_ZOOM) {
-        currentZoom += ZOOM_STEP;
+        currentZoom = Math.min(MAX_ZOOM, currentZoom + ZOOM_STEP);
         applyZoom();
     }
 }
 
 function zoomOut() {
     if (currentZoom > MIN_ZOOM) {
-        currentZoom -= ZOOM_STEP;
+        currentZoom = Math.max(MIN_ZOOM, currentZoom - ZOOM_STEP);
+        if (currentZoom === 1) {
+            panX = 0;
+            panY = 0;
+        }
         applyZoom();
     }
 }
@@ -233,14 +295,19 @@ function resetZoom() {
 
 function applyZoom() {
     const slides = document.querySelectorAll(".slide");
-    slides.forEach(slide => {
-        slide.style.transform = `scale(${currentZoom}) translate(${panX}px, ${panY}px)`;
-        
-        // Change cursor based on zoom level
-        if (currentZoom > 1) {
-            slide.style.cursor = "grab";
+    slides.forEach((slide, idx) => {
+        // Only apply zoom to the current slide
+        if (idx === currentSlideIndex) {
+            slide.style.transform = `scale(${currentZoom}) translate(${panX / currentZoom}px, ${panY / currentZoom}px)`;
+            
+            // Change cursor based on zoom level
+            if (currentZoom > 1) {
+                slide.style.cursor = "grab";
+            } else {
+                slide.style.cursor = "pointer";
+            }
         } else {
-            slide.style.cursor = "pointer";
+            slide.style.transform = `scale(1) translate(0, 0)`;
         }
     });
     
@@ -251,9 +318,22 @@ function applyZoom() {
     }
 }
 
-// Close slider on Escape key
+// Close slider on Escape key and arrow keys
 document.addEventListener("keydown", function(event) {
+    const sliderModal = document.getElementById("sliderModal");
+    if (!sliderModal.classList.contains("active")) return;
+    
     if (event.key === "Escape") {
         closeSlider();
+    } else if (event.key === "ArrowRight") {
+        nextSlide();
+    } else if (event.key === "ArrowLeft") {
+        prevSlide();
+    } else if (event.key === "+") {
+        zoomIn();
+    } else if (event.key === "-") {
+        zoomOut();
+    } else if (event.key === "0") {
+        resetZoom();
     }
 });
